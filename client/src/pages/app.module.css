@@ -1,0 +1,19 @@
+/* used with next.js index.js file */
+.app {
+  text-align: center;
+}
+
+.app-header {
+  background-color: #3432382f;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(25px + 2vmin);
+  color: rgb(0, 0, 0);
+}
+
+.app-link {
+  color: #61dafb;
+}
