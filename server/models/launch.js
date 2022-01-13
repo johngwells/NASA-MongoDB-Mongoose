@@ -56,7 +56,7 @@ async function saveLaunch(launch) {
       upsert: true
     });
   } catch(err) {
-    console.error(err); 
+    console.log(err); 
   }
 }
 
