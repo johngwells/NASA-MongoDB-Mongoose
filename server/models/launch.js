@@ -6,6 +6,8 @@ const planets = require('./planets.mongo');
 const DEFAULT_FLIGHT_NUMBER = 100;
 
 // comments in launch is to access spacex Api
+
+/*
 const launch = {
   flightNumber: 100, // flight_number
   mission: 'Kepler Explorer', // name
@@ -18,6 +20,7 @@ const launch = {
 };
 
 saveLaunch(launch);
+*/
 
 const SPACEX_API = 'https://api.spacexdata.com/v4/launches/query';
 
@@ -43,6 +46,11 @@ async function populateLaunches() {
     }
   });
 
+  if (response.status !== 200) {
+    console.log('Problem downloading launch data');
+    throw new Error('Launch data download failed');
+  }
+
   console.log('Download from api...');
 
   const launchDocs = response.data.docs;
@@ -63,7 +71,9 @@ async function populateLaunches() {
       customers
     };
 
-    console.log(`${launch.flightNumber} ${launch.mission}`)
+    console.log(`${launch.flightNumber} ${launch.mission}`);
+
+    await saveLaunch(launch);
   }
 }
 
@@ -101,25 +111,23 @@ async function getLatestFlightNumber() {
   return latestLaunch.flightNumber;
 }
 
-async function getAllLaunches() {
-  return await launchesDB.find(
-    {},
-    {
-      _id: 0,
-      __v: 0
-    }
-  );
+async function getAllLaunches(skip, limit) {
+  return await launchesDB
+    .find({}, { _id: 0, __v: 0 })
+    .sort({ flightNumber: 1 })
+    .skip(skip) 
+    .limit(limit);
 }
 
 async function saveLaunch(launch) {
   try {
-    const planet = await planets.findOne({
-      keplerName: launch.target
-    });
+    // const planet = await planets.findOne({
+    //   keplerName: launch.target
+    // });
 
-    if (!planet) {
-      throw new Error('No matching planet found');
-    }
+    // if (!planet) {
+    //   throw new Error('No matching planet found');
+    // }
 
     await launchesDB.findOneAndUpdate(
       {
@@ -136,6 +144,14 @@ async function saveLaunch(launch) {
 }
 
 async function scheduleNewLaunch(launch) {
+  const planet = await planets.findOne({
+    keplerName: launch.target
+  });
+
+  if (!planet) {
+    throw new Error('No matching planet found');
+  }
+
   const newFlightNumber = (await getLatestFlightNumber()) + 1;
   const newLaunch = Object.assign(launch, {
     success: true,
